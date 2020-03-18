@@ -20,6 +20,12 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name:
+  # list of secrets to connect to the service account
+  secrets: []
+  # - mySecret
+  # list of imagePullSecrets to connect to the service account
+  imagePullSecrets: []
+  # - myImagePullSecret
 
 podSecurityContext: {}
   # fsGroup: 2000
@@ -32,9 +38,32 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+# A list of secrets and key from the secret to inject into the pod
+# secrets:
+#   podEnvVar:
+#     secretName: keyInSecret
+
+# A list of configMaps and key from the configMap to inject into the pod
+# configs:
+#   podEnvVar:
+#     configMapName: keyInConfigMap
+
 service:
   type: ClusterIP
-  port: 80
+
+# ports to be used for the pod and service. for each block, a port spec will be injected to both the podspec in the deployment.yaml and the corresponding service object. when defining nodePort, you can leave the value empty and a random port will be chosen for you
+
+ports:
+  http:
+    protocol: TCP
+    containerPort: 80
+    servicePort: 80
+  #  nodePort:
+  https:
+    protocol: TCP
+    containerPort: 443
+    servicePort: 443
+    nodePort:
 
 ingress:
   enabled: false
@@ -49,11 +78,11 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+resources: {}
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
@@ -66,3 +95,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+
+# should we run tests once the chart is deployed. setting to true will rended all yamls under tests/ folder
+
+testing: false

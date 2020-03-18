@@ -14,10 +14,6 @@ spec:
       labels:
         {{- include "base.selectorLabels" . | nindent 8 }}
     spec:
-    {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
       serviceAccountName: {{ include "base.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
@@ -27,18 +23,41 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if or .Values.configs .Values.secrets }}
+          env:
+          {{- with .Values.secrets }}
+          # Loop through all secrets under .Values.secrets
+            {{- range $key, $value := .}}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  {{- range $subkey, $subvalue := .}}
+                  name: {{ $subkey }}
+                  key: {{ $subvalue }}
+                  {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.configs }}
+          # Loop through all configs under .Values.configs
+            {{- range $key, $value := .}}
+            - name: {{ $key }}
+              valueFrom:
+                configMapKeyRef:
+                  {{- range $subkey, $subvalue := .}}
+                  name: {{ $subkey }}
+                  key: {{ $subvalue }}
+                  {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+          {{- with .Values.ports }}  
           ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              containerPort: {{ $value.containerPort }}
+              protocol: {{ $value.protocol }}
+            {{- end }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
