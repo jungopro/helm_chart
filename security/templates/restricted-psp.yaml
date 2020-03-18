@@ -1,4 +1,4 @@
-{{- if .Values.restricted -}}
+{{- if .Values.restricted.enabled -}}
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
