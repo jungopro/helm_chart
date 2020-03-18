@@ -1,0 +1,6 @@
+# Value for the security chart
+
+privileged:
+  # list of namespace: serviceaccounts to grant access to the privileged psp
+  # serviceAccounts:
+  #   mynamespace: myserviceaccount
