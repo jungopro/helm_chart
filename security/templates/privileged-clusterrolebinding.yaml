@@ -3,6 +3,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {{ template "privileged.name" }}
+  labels:
+    {{- include "security.labels" . | nindent 4 }}
 roleRef:
   kind: ClusterRole
   name: {{ template "privileged.name" }}
@@ -13,6 +15,12 @@ subjects:
 - kind: ServiceAccount
   name: {{ $value }}
   namespace: {{ $key }}
+{{ end -}}
+{{- end -}}
+{{- with .Values.privileged.groups }}
+{{- range $key, $value := . }}
+- kind: Group
+  name: {{ $value }}
 {{ end -}}
 {{- end -}}
 {{- end -}}

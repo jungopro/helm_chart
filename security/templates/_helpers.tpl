@@ -36,7 +36,6 @@ Common labels
 */}}
 {{- define "security.labels" -}}
 helm.sh/chart: {{ include "security.chart" . }}
-{{ include "security.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -44,5 +43,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{- define "privileged.name" -}}
-{{- default "privileged" .Values.privileged.name | trunc 63 | trimSuffix "-" -}}
+{{- default "my-privileged" .Values.privileged.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "restricted.name" -}}
+{{- default "my-restricted" .Values.restricted.name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
