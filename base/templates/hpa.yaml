@@ -1,0 +1,16 @@
+{{- if and ( .Values.resources ) ( eq .Values.autoscaling.enabled true ) -}}
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "base.fullname" . }}
+  labels:
+    {{- include "base.labels" . | nindent 4 }}
+spec:
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  minReplicas: {{ default .Values.replicaCount .Values.autoscaling.minReplicas }}
+  scaleTargetRef:
+    apiVersion: {{ default "apps/v1" .Values.autoscaling.targetApiVersion }}
+    kind: {{ default "Deployment" .Values.autoscaling.targetKind }}
+    name: {{ default (include "base.fullname" .) .Values.autoscaling.targetName }}
+  targetCPUUtilizationPercentage: {{ .Values.autoscaling.cpuUtilization }}
+{{- end -}}

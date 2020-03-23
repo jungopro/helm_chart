@@ -8,8 +8,10 @@ image:
   repository: nginx
   pullPolicy: IfNotPresent
 
-imagePullSecrets: []
+# override Chart.Name
 nameOverride: ""
+
+# override Chart.Fullname
 fullnameOverride: ""
 
 serviceAccount:
@@ -96,7 +98,26 @@ tolerations: []
 
 affinity: {}
 
-
-# should we run tests once the chart is deployed. setting to true will rended all yamls under tests/ folder
+# should we run tests once the chart is deployed. setting to true will rended all yamls under tests/ sub-folder
 
 testing: false
+
+# Autoscaling specs
+
+autoscaling:
+  # should we enable hpa
+  enabled: false
+
+  # we automatically set the minReplicas to .Values.replicaCount. If you wish to override that value, please change below:
+  # minReplicas: 2
+
+  # set the maximum number of replicas
+  maxReplicas: 5
+
+  # cpu utilization threshold for scaling
+  cpuUtilization: 80
+
+  # we automatically set the target for scaling to the deployment in the chart (deployment.yaml). If you with to override that spec, please change below:
+  targetApiVersion: 
+  targetKind: 
+  targetName: 
