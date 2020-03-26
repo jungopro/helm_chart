@@ -1,0 +1,22 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "base.fullname" . }}
+  labels:
+    {{- include "base.labels" . | nindent 4 }}
+data:
+{{- with .Values.envs }}
+{{- range $key, $value := .}}
+{{- range $subkey, $subvalue := .}}
+  {{ $subkey }}: {{ $subvalue }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.configuration.files -}}
+{{- $files := .Files }}
+{{- range .Values.configuration.files }}
+  {{ . }}:
+    {{ $files.Get (printf "configs/%s" .) }}
+{{ end -}}
+{{- end -}}

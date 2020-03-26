@@ -1,3 +1,4 @@
+{{ $configMapName := include "base.fullname" . }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,7 +24,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- if or .Values.configs .Values.secrets }}
+        {{- if or .Values.envs .Values.secrets }}
           env:
           {{- with .Values.secrets }}
           # Loop through all secrets under .Values.secrets
@@ -37,15 +38,15 @@ spec:
                   {{- end }}
             {{- end }}
           {{- end }}
-          {{- with .Values.configs }}
-          # Loop through all configs under .Values.configs
+          {{- with .Values.envs }}
+          # Loop through all configs under .Values.envs
             {{- range $key, $value := .}}
             - name: {{ $key }}
               valueFrom:
                 configMapKeyRef:
                   {{- range $subkey, $subvalue := .}}
-                  name: {{ $subkey }}
-                  key: {{ $subvalue }}
+                  name: {{ $configMapName }}
+                  key: {{ $subkey }}
                   {{- end }}
             {{- end }}
           {{- end }}
@@ -57,6 +58,15 @@ spec:
               containerPort: {{ $value.containerPort }}
               protocol: {{ $value.protocol }}
             {{- end }}
+          {{- end }}
+          volumeMounts:
+          {{- if .Values.configuration -}}
+            - name: {{ $configMapName }}
+              mountPath: {{ .Values.configuration.mountPath }}
+          {{- end -}}
+          {{- range .Values.extraConfigmapMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -72,3 +82,12 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
     {{- end }}
+      volumes:
+        - name: {{ $configMapName }}
+          configMap:
+            name: {{ $configMapName }}
+      {{- range .Values.extraConfigmapMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .name }}
+      {{- end }}

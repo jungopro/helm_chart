@@ -16,6 +16,7 @@ fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
+  repository: nginx
   create: true
   # Annotations to add to the service account
   annotations: {}
@@ -40,16 +41,28 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# A list of secrets and key from the secret to inject into the pod
+# A list of secrets and key from the secret to inject into the pod as environment variables. secrets should pre-exist
 # secrets:
-#   podEnvVar:
+#   POD_SECRET_ENV_VAR:
 #     secretName: keyInSecret
 
-# A list of configMaps and key from the configMap to inject into the pod
-# configs:
-#   podEnvVar:
-#     configMapName: keyInConfigMap
+# A list of keys from the chart's default configMap to inject into the pod as environment variables
+# envs:
+#   POD_ENV_VAR:
+#     configMapKey: configMapValue
 
+# create a configmap with all the files under the configs directory
+# list all file names under .files
+# mountPath is the location to place the files in the pod
+configuration: {}
+  # files: []
+  # - config.conf
+  # mountPath: /app/config
+
+# Additional configMaps to connect to the pod. configMaps should pre-exist
+extraConfigmapMounts: {}
+  # - name: certs-configmap
+  #   mountPath: /app/certs/ssl/
 
 # should we create a service
 service:
