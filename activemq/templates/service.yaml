@@ -1,0 +1,28 @@
+{{- if and (eq .Values.service.enabled true) (.Values.ports) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "activemq.fullname" . }}
+  labels:
+    {{- include "activemq.labels" . | nindent 4 }}
+spec:
+  type: {{ default "ClusterIP" .Values.service.type }}
+  {{- with .Values.ports }}
+  ports:
+    {{- range $key, $value := . }}
+    - name: {{ $key }}
+      port: {{ $value.servicePort }}
+      targetPort: {{ $key }}
+      protocol: {{ $value.protocol }}
+      {{- range $subkey, $subvalue := . }}
+      {{- if and (eq $subkey "nodePort") (not $subvalue) }}
+      nodeport: 
+      {{- else if eq $subkey "nodePort" }}
+      nodePort: {{ $subvalue }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  selector:
+    {{- include "activemq.selectorLabels" . | nindent 4 }}
+{{- end -}}

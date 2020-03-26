@@ -1,0 +1,9 @@
+{{- if eq .Values.config.load true -}}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: 
+  namespace: default
+data:
+{{ (.Files.Glob "configs/*").AsConfig | indent 2 }}
+{{- end -}}

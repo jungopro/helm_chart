@@ -1,21 +1,20 @@
-{{ $configMapName := include "base.fullname" . }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "base.fullname" . }}
+  name: {{ include "activemq.fullname" . }}
   labels:
-    {{- include "base.labels" . | nindent 4 }}
+    {{- include "activemq.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "base.selectorLabels" . | nindent 6 }}
+      {{- include "activemq.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "base.selectorLabels" . | nindent 8 }}
+        {{- include "activemq.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "base.serviceAccountName" . }}
+      serviceAccountName: {{ include "activemq.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -24,7 +23,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- if or .Values.envs .Values.secrets }}
+        {{- if or .Values.configs .Values.secrets }}
           env:
           {{- with .Values.secrets }}
           # Loop through all secrets under .Values.secrets
@@ -38,15 +37,15 @@ spec:
                   {{- end }}
             {{- end }}
           {{- end }}
-          {{- with .Values.envs }}
-          # Loop through all configs under .Values.envs
+          {{- with .Values.configs }}
+          # Loop through all configs under .Values.configs
             {{- range $key, $value := .}}
             - name: {{ $key }}
               valueFrom:
                 configMapKeyRef:
                   {{- range $subkey, $subvalue := .}}
-                  name: {{ $configMapName }}
-                  key: {{ $subkey }}
+                  name: {{ $subkey }}
+                  key: {{ $subvalue }}
                   {{- end }}
             {{- end }}
           {{- end }}
@@ -59,17 +58,15 @@ spec:
               protocol: {{ $value.protocol }}
             {{- end }}
           {{- end }}
-          volumeMounts:
-          {{- if .Values.configuration -}}
-            - name: {{ $configMapName }}
-              mountPath: {{ .Values.configuration.mountPath }}
-          {{- end -}}
-          {{- range .Values.extraConfigmapMounts }}
-            - name: {{ .name }}
-              mountPath: {{ .mountPath }}
-          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: storage
+              mountPath: "/opt/activemq/data"
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -83,11 +80,11 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ $configMapName }}
-          configMap:
-            name: {{ $configMapName }}
-      {{- range .Values.extraConfigmapMounts }}
-        - name: {{ .name }}
-          configMap:
-            name: {{ .name }}
-      {{- end }}
+        {{- if and .Values.persistence.enabled (eq .Values.persistence.type "pvc") }}
+        - name: storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "activemq.fullname" .) }}
+        {{- else }}
+        - name: storage
+          emptyDir: {}
+        {{- end -}}

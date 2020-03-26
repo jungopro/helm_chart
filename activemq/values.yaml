@@ -1,12 +1,30 @@
-# Default values for base.
+# Default values for activemq.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: rmohr/activemq
   pullPolicy: IfNotPresent
+
+## See `kubectl explain deployment.spec.strategy` for more
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+deploymentStrategy:
+  type: RollingUpdate
+
+# readinessProbe:
+#   httpGet:
+#     path: /api/health
+#     port: 3000
+# 
+# livenessProbe:
+#   httpGet:
+#     path: /api/health
+#     port: 3000
+#   initialDelaySeconds: 60
+#   timeoutSeconds: 30
+#   failureThreshold: 10
 
 # override Chart.Name
 nameOverride: ""
@@ -16,7 +34,6 @@ fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
-  repository: nginx
   create: true
   # Annotations to add to the service account
   annotations: {}
@@ -41,28 +58,16 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# A list of secrets and key from the secret to inject into the pod as environment variables. secrets should pre-exist
+# A list of secrets and key from the secret to inject into the pod
 # secrets:
-#   POD_SECRET_ENV_VAR:
+#   podEnvVar:
 #     secretName: keyInSecret
 
-# A list of keys from the chart's default configMap to inject into the pod as environment variables
-# envs:
-#   POD_ENV_VAR:
-#     configMapKey: configMapValue
+# A list of configMaps and key from the configMap to inject into the pod
+# configs:
+#   podEnvVar:
+#     configMapName: keyInConfigMap
 
-# create a configmap with all the files under the configs directory
-# list all file names under .files
-# mountPath is the location to place the files in the pod
-configuration: {}
-  # files: []
-  # - config.conf
-  # mountPath: /app/config
-
-# Additional configMaps to connect to the pod. configMaps should pre-exist
-extraConfigmapMounts: {}
-  # - name: certs-configmap
-  #   mountPath: /app/certs/ssl/
 
 # should we create a service
 service:
@@ -73,25 +78,26 @@ service:
 # When defining nodePort, you can leave the value empty and a random port will be chosen for you
 
 ports:
-  # without nodePort
-  http:
+  admin:
     protocol: TCP
-    containerPort: 80
-    servicePort: 80
-  
-  # with random nodePort
-  # https:
-  #   protocol: TCP
-  #   containerPort: 443
-  #   servicePort: 443
-  #   nodePort:
-  
-  # with specific nodePort (beware of conflicts)
-  # metrics:
-  #   protocol: TCP
-  #   containerPort: 9000
-  #   servicePort: 9000
-  #   nodePort: 30000
+    containerPort: 8161
+    servicePort: 8161
+  broker:
+    protocol: TCP
+    containerPort: 61616
+    servicePort: 61616
+  amqp:
+    protocol: TCP
+    containerPort: 5672
+    servicePort: 5672
+  stomp:
+    protocol: TCP
+    containerPort: 1883
+    servicePort: 1883
+  websocket:
+    protocol: TCP
+    containerPort: 61614
+    servicePort: 61614
 
 ingress:
   enabled: false
@@ -110,13 +116,13 @@ ingress:
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+resources:
+  limits:
+    cpu: 1
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
 
 nodeSelector: {}
 
@@ -124,7 +130,7 @@ tolerations: []
 
 affinity: {}
 
-# should we run tests once the chart is deployed. setting to true will rended all yamls under tests/ sub-folder
+# should we run tests once the chart is deployed. setting to true will render all yamls under tests/ sub-folder
 
 testing: false
 
@@ -147,3 +153,23 @@ autoscaling:
   targetApiVersion: 
   targetKind: 
   targetName: 
+
+## Configuration Specs
+
+config:
+  # should we load config files into the config map. all files under the configs folder will be loaded.
+  load: true
+
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistence:
+  type: pvc
+  enabled: true
+  # storageClassName: default
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  # annotations: {}
+  # subPath: ""
+  # existingClaim:
