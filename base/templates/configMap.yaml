@@ -16,7 +16,7 @@ data:
 {{- if .Values.configuration.files -}}
 {{- $files := .Files }}
 {{- range .Values.configuration.files }}
-  {{ . }}:
+  {{ . }}: |
     {{ $files.Get (printf "configs/%s" .) }}
 {{ end -}}
 {{- end -}}

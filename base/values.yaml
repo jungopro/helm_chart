@@ -47,17 +47,18 @@ securityContext: {}
 #     secretName: keyInSecret
 
 # A list of keys from the chart's default configMap to inject into the pod as environment variables
-# envs:
-#   POD_ENV_VAR:
-#     configMapKey: configMapValue
+envs:
+  POD_ENV_VAR:
+    configMapKey: configMapValue
 
 # create a configmap with all the files under the configs directory
 # list all file names under .files
 # mountPath is the location to place the files in the pod
-configuration: {}
-  # files: []
-  # - config.conf
-  # mountPath: /app/config
+configuration:
+  files:
+  - nginx.conf
+  - virtualhost.conf
+  mountPath: /app/config
 
 # Additional configMaps to connect to the pod. configMaps should pre-exist
 extraConfigmapMounts: {}

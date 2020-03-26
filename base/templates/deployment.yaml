@@ -27,7 +27,6 @@ spec:
         {{- if or .Values.envs .Values.secrets }}
           env:
           {{- with .Values.secrets }}
-          # Loop through all secrets under .Values.secrets
             {{- range $key, $value := .}}
             - name: {{ $key }}
               valueFrom:
@@ -39,7 +38,6 @@ spec:
             {{- end }}
           {{- end }}
           {{- with .Values.envs }}
-          # Loop through all configs under .Values.envs
             {{- range $key, $value := .}}
             - name: {{ $key }}
               valueFrom:
@@ -53,14 +51,14 @@ spec:
         {{- end }}
           {{- with .Values.ports }}  
           ports:
-            {{- range $key, $value := . }}
+            {{- range $key, $value := .}}
             - name: {{ $key }}
               containerPort: {{ $value.containerPort }}
               protocol: {{ $value.protocol }}
             {{- end }}
           {{- end }}
           volumeMounts:
-          {{- if .Values.configuration -}}
+          {{- if .Values.configuration }}
             - name: {{ $configMapName }}
               mountPath: {{ .Values.configuration.mountPath }}
           {{- end -}}
@@ -83,9 +81,16 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
+        {{- if .Values.configuration }}
         - name: {{ $configMapName }}
           configMap:
             name: {{ $configMapName }}
+            items:
+            {{- range .Values.configuration.files }}
+              - key: {{ . }}
+                path: {{ . }}
+            {{- end -}}
+        {{- end -}}
       {{- range .Values.extraConfigmapMounts }}
         - name: {{ .name }}
           configMap:
