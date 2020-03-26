@@ -1,4 +1,4 @@
-{{- if .Values.service -}}
+{{- if and (eq .Values.service.enabled true) (.Values.ports) -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "base.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ default "ClusterIP" .Values.service.type }}
   {{- with .Values.ports }}
   ports:
     {{- range $key, $value := . }}

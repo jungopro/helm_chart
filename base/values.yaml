@@ -50,22 +50,35 @@ securityContext: {}
 #   podEnvVar:
 #     configMapName: keyInConfigMap
 
-service:
-  type: ClusterIP
 
-# ports to be used for the pod and service. for each block, a port spec will be injected to both the podspec in the deployment.yaml and the corresponding service object. when defining nodePort, you can leave the value empty and a random port will be chosen for you
+# should we create a service
+service:
+  enabled: true
+  # type: LoadBalancer
+
+# Ports to be used for the pod and service. for each block, a port spec will be injected to both the podspec in the deployment.yaml and the corresponding service object. 
+# When defining nodePort, you can leave the value empty and a random port will be chosen for you
 
 ports:
+  # without nodePort
   http:
     protocol: TCP
     containerPort: 80
     servicePort: 80
-  #  nodePort:
-  https:
-    protocol: TCP
-    containerPort: 443
-    servicePort: 443
-    nodePort:
+  
+  # with random nodePort
+  # https:
+  #   protocol: TCP
+  #   containerPort: 443
+  #   servicePort: 443
+  #   nodePort:
+  
+  # with specific nodePort (beware of conflicts)
+  # metrics:
+  #   protocol: TCP
+  #   containerPort: 9000
+  #   servicePort: 9000
+  #   nodePort: 30000
 
 ingress:
   enabled: false
