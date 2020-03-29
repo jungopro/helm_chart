@@ -1,6 +1,5 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "base.fullname" . -}}
-{{- $svcPort := .Values.service.port -}}
 {{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1beta1
 {{- else -}}
@@ -29,13 +28,14 @@ spec:
   rules:
   {{- range .Values.ingress.hosts }}
     - host: {{ .host | quote }}
+      {{ $servicePort := .portName -}}
       http:
         paths:
         {{- range .paths }}
           - path: {{ . }}
             backend:
               serviceName: {{ $fullName }}
-              servicePort: {{ $svcPort }}
+              servicePort: {{ $servicePort }}
         {{- end }}
   {{- end }}
 {{- end }}
