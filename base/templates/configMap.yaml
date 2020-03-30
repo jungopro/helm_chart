@@ -17,6 +17,6 @@ data:
 {{- $files := .Files }}
 {{- range .Values.configuration.files }}
   {{ . }}: |
-    {{ $files.Get (printf "configs/%s" .) }}
+    {{ $files.Get (printf "configs/%s" .) | quote }}
 {{ end -}}
 {{- end -}}
