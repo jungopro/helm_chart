@@ -16,7 +16,7 @@ data:
 {{- if .Values.configuration.files -}}
 {{- $files := .Files }}
 {{- range .Values.configuration.files }}
-  {{ . }}: |
-    {{ toJson ($files.Get (printf "configs/%s" .) | quote) }}
+  {{ . }}: |-
+{{ $files.Get (printf "configs/%s" .) | indent 4 }}
 {{ end -}}
 {{- end -}}
