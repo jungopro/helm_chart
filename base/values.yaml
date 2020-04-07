@@ -95,21 +95,16 @@ ports:
   #   nodePort: 30000
 
 ingress:
-  enabled: true
+  enabled: false
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: hcp.medtronic.com
-      paths:
-      - /foo
-      - /bar
-      portName: http # select a port from .Values.ports
-    - host: hcp.medtronic.com
-      paths:
-      - /hcp
-      - /omer
-      portName: https # select a port from .Values.ports
+  hosts: []
+    # - host: hcp.jungo.guru
+    #   paths:
+    #   - /foo
+    #   - /bar
+    #   portName: http # select a port from .Values.ports
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
